@@ -159,6 +159,7 @@ class CargBox:
         self._args = args
 
     def save_to_yaml(self, show_diff=False):
+        os.makedirs(self._config['save_path'], exist_ok=True)
         with open(os.path.join(self._config['save_path'], 'args.yaml'), 'w') as f:
             yaml.dump(OrderedDict(self.args), f)
 
