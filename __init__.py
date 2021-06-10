@@ -158,10 +158,14 @@ class CargBox:
 
         self._args = args
 
-    def save_to_yaml(self, show_diff=False):
+    def save_to_yaml(self, save_main_parser: bool = False):
         os.makedirs(self._config['save_path'], exist_ok=True)
         with open(os.path.join(self._config['save_path'], 'args.yaml'), 'w') as f:
             yaml.dump(OrderedDict(self.args), f)
+
+        if save_main_parser and self.main_parser is not None:
+            with open(os.path.join(self._config['save_path'], 'main_args.yaml'), 'w') as f:
+                yaml.dump(OrderedDict(self.args), f)
 
     def dump_yaml(self):
         return yaml.dump(OrderedDict(self.args))
@@ -222,7 +226,7 @@ if __name__ == "__main__":
     hoof = main_parser.parse_args(["5", "."])
     print(hoof)
 
-    p = ConfigArgumentParser(save_path=hoof.ckpt_path, argparse=parser, main_parser=main_parser)
+    p = CargBox(save_path=hoof.ckpt_path, argparse=parser, main_parser=main_parser)
     #print(p.parse_partial())
     #p.restore_from_yaml()
     p.parse_args(["5", "3", "--update_args"])
