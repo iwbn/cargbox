@@ -161,14 +161,22 @@ class CargBox:
     def save_to_yaml(self, save_main_parser: bool = False):
         os.makedirs(self._config['save_path'], exist_ok=True)
         with open(os.path.join(self._config['save_path'], 'args.yaml'), 'w') as f:
-            yaml.dump(OrderedDict(self.args), f)
+            yaml.dump(self.to_ordered_dict(), f)
 
         if save_main_parser and self.main_parser is not None:
+            args = self.main_parser.parse_args()
             with open(os.path.join(self._config['save_path'], 'main_args.yaml'), 'w') as f:
-                yaml.dump(OrderedDict(self.args), f)
+                yaml.dump(OrderedDict(vars(args)), f)
+
+    def to_ordered_dict(self):
+        args = self.args.to_dict()
+        ordered_args = OrderedDict()
+        for key in self.get_ordered_keys():
+            ordered_args[key] = args[key]
+        return ordered_args
 
     def dump_yaml(self):
-        return yaml.dump(OrderedDict(self.args))
+        return yaml.dump(self.to_ordered_dict())
 
     def diff(self, only_changed=True, print_result=True):
         new_keys = set(self.args.keys())
@@ -209,28 +217,3 @@ class CargBox:
             else:
                 print("No args are changed from %s" % yaml_path)
         return out, Box({'added': added, 'deleted': deleted, 'changed': changed})
-
-if __name__ == "__main__":
-    parser = ArgumentParser(add_help=False)
-    parser.add_argument('name', type=int)
-    parser.add_argument('--seed', '-s', type=int, default=3)
-    parser.add_argument('--resume', type=str, default='a/b/c3.ckpt')
-    parser.add_argument('--surgery', type=str, default='190', choices=['190', '417'])
-    parser.add_argument('--tf2', action='store_true')
-    parser.add_argument('--tf', action='store_true')
-    parser.add_argument('--tf3', action='store_true')
-
-    main_parser = ArgumentParser(parents=[parser])
-    main_parser.add_argument("ckpt_path")
-    main_parser.add_argument("--update_args", action="store_true")
-    hoof = main_parser.parse_args(["5", "."])
-    print(hoof)
-
-    p = CargBox(save_path=hoof.ckpt_path, argparse=parser, main_parser=main_parser)
-    #print(p.parse_partial())
-    #p.restore_from_yaml()
-    p.parse_args(["5", "3", "--update_args"])
-    #print(p.args)
-    #p.save_to_yaml()
-    #p.maybe_restore(save=False, update=True)
-    print(p.dump_yaml())
